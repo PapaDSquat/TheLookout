@@ -36,7 +36,6 @@ public:
 	virtual void TickComponent( float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 
 	// Public Interface
-	void SetupHand( EVRHandSide side );
 	void GrabTargetBall( USceneComponent* parentComponent );
 	void ReleaseHeldBall();
 	void SetGrabAmount( float amount );
@@ -68,7 +67,6 @@ public:
 private:
 	// Setup
 	void CreateComponents();
-	USkeletalMeshComponent* CreateSkeletalMesh( UMotionControllerComponent* parentComponent );
 	void SetupAnimationBlueprint( USkeletalMeshComponent* skeletalMesh );
 
 	// Targetting

@@ -10,7 +10,28 @@ AVRLookoutPlayerPawn::AVRLookoutPlayerPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	CreateComponents();
+}
+
+void AVRLookoutPlayerPawn::BeginPlay()
+{
+	Super::BeginPlay();
+
+	TArray<UActorComponent*> handComponents;
+	GetComponents( UVRMotionControllerComponent::StaticClass(), handComponents, true );
+	for( const auto& comp : handComponents )
+	{
+		if( auto handComp = Cast< UVRMotionControllerComponent >( comp ) )
+		{
+			if( handComp->HandSide == EVRHandSide::Left )
+			{
+				LeftHand = handComp;
+			}
+			else if( handComp->HandSide == EVRHandSide::Right )
+			{
+				RightHand = handComp;
+			}
+		}
+	}
 }
 
 void AVRLookoutPlayerPawn::SetupPlayerInputComponent( UInputComponent* PlayerInputComponent )
@@ -21,43 +42,6 @@ void AVRLookoutPlayerPawn::SetupPlayerInputComponent( UInputComponent* PlayerInp
 	PlayerInputComponent->BindAction( "GrabLeftHand", IE_Released, this, &AVRLookoutPlayerPawn::OnLeftHandGrabRelease );
 	PlayerInputComponent->BindAction( "GrabRightHand", IE_Pressed, this, &AVRLookoutPlayerPawn::OnRightHandGrabPress );
 	PlayerInputComponent->BindAction( "GrabRightHand", IE_Released, this, &AVRLookoutPlayerPawn::OnRightHandGrabRelease );
-}
-
-void AVRLookoutPlayerPawn::CreateComponents()
-{
-	RootComponent = CreateDefaultSubobject< USceneComponent >( TEXT( "SceneRoot" ) );
-
-	PhysicsHandle = CreateDefaultSubobject< UPhysicsHandleComponent >( TEXT( "PhysicsHandle" ) );
-
-	USceneComponent* cameraRoot = CreateDefaultSubobject< USceneComponent >( TEXT( "CameraRoot" ) );
-	{
-		cameraRoot->SetupAttachment( RootComponent );
-		cameraRoot->SetRelativeLocationAndRotation( FVector::ZeroVector, FQuat::Identity );
-		cameraRoot->SetRelativeScale3D( FVector::OneVector );
-	}
-
-	UCameraComponent* cameraComponent = CreateDefaultSubobject< UCameraComponent >( TEXT( "Camera" ) );
-	{
-		cameraComponent->SetupAttachment( cameraRoot );
-		cameraComponent->SetRelativeLocationAndRotation( FVector::ZeroVector, FQuat::Identity );
-		cameraComponent->SetRelativeScale3D( FVector::OneVector );
-	}
-
-	LeftHand = CreateDefaultSubobject< UVRMotionControllerComponent >( TEXT( "LeftHand" ) );
-	{
-		LeftHand->SetupAttachment( cameraRoot );
-		LeftHand->SetupHand( EVRHandSide::Left );
-		LeftHand->SetRelativeLocationAndRotation( FVector::ZeroVector, FQuat::Identity );
-		LeftHand->SetRelativeScale3D( FVector::OneVector );
-	}
-
-	RightHand = CreateDefaultSubobject< UVRMotionControllerComponent >( TEXT( "RightHand" ) );
-	{
-		RightHand->SetupAttachment( cameraRoot );
-		RightHand->SetupHand( EVRHandSide::Right );
-		RightHand->SetRelativeLocationAndRotation( FVector::ZeroVector, FQuat::Identity );
-		RightHand->SetRelativeScale3D( FVector::OneVector );
-	}
 }
 
 bool AVRLookoutPlayerPawn::TryGrabBall( UVRMotionControllerComponent* handComponent )

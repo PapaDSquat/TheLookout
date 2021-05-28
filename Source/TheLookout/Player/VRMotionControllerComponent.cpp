@@ -14,62 +14,30 @@ UVRMotionControllerComponent::UVRMotionControllerComponent()
 	CreateComponents();
 }
 
+void UVRMotionControllerComponent::CreateComponents()
+{
+	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>( TEXT( "PhysicsHandle" ) );
+}
+
 void UVRMotionControllerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	m_animBPInstance = Cast< UPlayerHandAnimInstance >( m_skeletalMesh->GetAnimInstance() );
-}
+	HandSide = MotionSource == FXRMotionControllerBase::LeftHandSourceId ? EVRHandSide::Left : EVRHandSide::Right;
 
-void UVRMotionControllerComponent::SetupHand( EVRHandSide side )
-{
-	HandSide = side;
-	MotionSource = HandSide == EVRHandSide::Left ? FXRMotionControllerBase::LeftHandSourceId : FXRMotionControllerBase::RightHandSourceId;
-
-	if( m_skeletalMesh )
+	TArray< USceneComponent* > childComps;
+	GetChildrenComponents( true, childComps );
+	for( USceneComponent* comp : childComps )
 	{
-		FQuat qRotation = FQuat::Identity;
-		FVector vec3Scale = FVector::OneVector;
-		if( HandSide == EVRHandSide::Left )
+		if( auto skeletalMeshComp = Cast< USkeletalMeshComponent >( comp ) )
 		{
-			qRotation = FQuat( FVector( 1, 0, 0 ), FMath::DegreesToRadians( 90 ) );
-			vec3Scale = FVector( 1, -1, 1 );
+			m_skeletalMesh = skeletalMeshComp;
+			
+			// TODO
+			//SetupAnimationBlueprint( m_skeletalMesh );
+			//m_animBPInstance = Cast< UPlayerHandAnimInstance >( m_skeletalMesh->GetAnimInstance() );
 		}
-		else
-		{
-			qRotation = FQuat( FVector( 1, 0, 0 ), FMath::DegreesToRadians( 270 ) );
-		}
-		m_skeletalMesh->SetRelativeLocationAndRotation( FVector::ZeroVector, qRotation );
-		m_skeletalMesh->SetRelativeScale3D( vec3Scale );
 	}
-}
-
-void UVRMotionControllerComponent::CreateComponents()
-{
-	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>( TEXT( "PhysicsHandle" ) );
-
-	m_skeletalMesh = CreateSkeletalMesh( this );
-}
-
-USkeletalMeshComponent* UVRMotionControllerComponent::CreateSkeletalMesh( UMotionControllerComponent* parentComponent )
-{
-	USkeletalMeshComponent* outComponent = NULL;
-
-	// TODO: Editable property
-	static ConstructorHelpers::FObjectFinder< USkeletalMesh > HandMeshObject( TEXT( "SkeletalMesh'/Game/VirtualReality/Mannequin/Character/Mesh/MannequinHand_Right.MannequinHand_Right'" ) );
-	if( HandMeshObject.Object )
-	{
-		outComponent = CreateDefaultSubobject< USkeletalMeshComponent >( TEXT( "SkeletalMesh" ) );
-		outComponent->SetSkeletalMesh( HandMeshObject.Object, true );
-		outComponent->SetAutoActivate( true );
-		outComponent->SetVisibility( true );
-		outComponent->SetHiddenInGame( false );
-		outComponent->SetupAttachment( parentComponent );
-
-		SetupAnimationBlueprint( outComponent );
-	}
-	UE_LOG( LogTemp, Error, TEXT( "Unable to load skeletal mesh component" ) );
-	return outComponent;
 }
 
 void UVRMotionControllerComponent::SetupAnimationBlueprint( USkeletalMeshComponent* skeletalMesh )
@@ -215,7 +183,7 @@ void UVRMotionControllerComponent::ReleaseHeldBall()
 void UVRMotionControllerComponent::SetGrabAmount( float amount )
 {
 	m_grabAmount = amount;
-	if( m_skeletalMesh )
+	if( m_animBPInstance )
 	{
 		m_animBPInstance->SetGrabAmount( amount );
 	}

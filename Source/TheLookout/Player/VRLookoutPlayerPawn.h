@@ -18,6 +18,7 @@ public:
 	AVRLookoutPlayerPawn();
 
 public:
+	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent( class UInputComponent* PlayerInputComponent ) override;
 
 	// Events
@@ -33,15 +34,10 @@ public:
 	UPROPERTY( EditDefaultsOnly, Category = "Components" )
 	UPhysicsHandleComponent* PhysicsHandle;
 
-	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = Hands )
-	UVRMotionControllerComponent* LeftHand;
-
-	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = Hands )
-	UVRMotionControllerComponent* RightHand;
-
 private:
-	void CreateComponents();
-
 	bool TryGrabBall( UVRMotionControllerComponent* handComponent );
 	bool TryReleaseBall( UVRMotionControllerComponent* handComponent );
+
+	UVRMotionControllerComponent* LeftHand;
+	UVRMotionControllerComponent* RightHand;
 };
